@@ -75,6 +75,76 @@ module LegacyAPI
       end
     end
 
+    # POST /api/v1/domains/verify
+    # Verifies domain ownership via DNS TXT record
+    # Required params: name (domain name)
+    def verify
+      domain_name = api_params["name"]
+
+      if domain_name.blank?
+        render_parameter_error "Domain name is required"
+        return
+      end
+
+      domain = @current_credential.server.domains.find_by(name: domain_name)
+
+      if domain.nil?
+        render_error "DomainNotFound", message: "Domain '#{domain_name}' not found"
+        return
+      end
+
+      if domain.verified?
+        render_success domain: domain_to_hash(domain),
+                       message: "Domain is already verified"
+        return
+      end
+
+      # Attempt to verify the domain
+      if domain.verify_with_dns
+        render_success domain: domain_to_hash(domain),
+                       message: "Domain verified successfully"
+      else
+        render_error "VerificationFailed",
+                     message: "Domain verification failed. Please ensure the DNS TXT record is set correctly.",
+                     expected_record: domain.dns_verification_string,
+                     domain: domain_to_hash(domain)
+      end
+    end
+
+    # POST /api/v1/domains/check_dns
+    # Checks all DNS records (SPF, DKIM, MX, Return Path)
+    # Required params: name (domain name)
+    def check_dns
+      domain_name = api_params["name"]
+
+      if domain_name.blank?
+        render_parameter_error "Domain name is required"
+        return
+      end
+
+      domain = @current_credential.server.domains.find_by(name: domain_name)
+
+      if domain.nil?
+        render_error "DomainNotFound", message: "Domain '#{domain_name}' not found"
+        return
+      end
+
+      # Trigger DNS checks (this is usually done by a background job)
+      domain.check_dns if domain.respond_to?(:check_dns)
+
+      # Reload to get updated status
+      domain.reload
+
+      render_success domain: domain_to_hash(domain),
+                     message: "DNS records checked",
+                     dns_status: {
+                       spf: { status: domain.spf_status, error: domain.spf_error },
+                       dkim: { status: domain.dkim_status, error: domain.dkim_error },
+                       mx: { status: domain.mx_status, error: domain.mx_error },
+                       return_path: { status: domain.return_path_status, error: domain.return_path_error }
+                     }
+    end
+
     # POST /api/v1/domains/delete
     # Deletes a domain
     # Required params: name (domain name)

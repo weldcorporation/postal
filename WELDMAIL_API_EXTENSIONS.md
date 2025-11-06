@@ -178,7 +178,115 @@ All endpoints use the same authentication as existing Postal API endpoints:
 }
 ```
 
-### 4. Delete Domain
+### 4. Verify Domain Ownership
+
+**Endpoint:** `POST /api/v1/domains/verify`
+
+**Description:** Verifies domain ownership by checking the DNS TXT record.
+
+**Request:**
+```json
+{
+  "name": "example.com"
+}
+```
+
+**Success Response:**
+```json
+{
+  "status": "success",
+  "time": 0.123,
+  "flags": {},
+  "data": {
+    "message": "Domain verified successfully",
+    "domain": {
+      "id": 1,
+      "uuid": "abc-123",
+      "name": "example.com",
+      "verified": true,
+      "verified_at": "2025-11-06T17:50:00Z",
+      ...
+    }
+  }
+}
+```
+
+**Error Response (Verification Failed):**
+```json
+{
+  "status": "error",
+  "time": 0.123,
+  "flags": {},
+  "data": {
+    "code": "VerificationFailed",
+    "message": "Domain verification failed. Please ensure the DNS TXT record is set correctly.",
+    "expected_record": "postal-domain-verification=abc123def456",
+    "domain": { ... }
+  }
+}
+```
+
+### 5. Check DNS Records
+
+**Endpoint:** `POST /api/v1/domains/check_dns`
+
+**Description:** Checks all DNS records (SPF, DKIM, MX, Return Path) and returns their status.
+
+**Request:**
+```json
+{
+  "name": "example.com"
+}
+```
+
+**Success Response:**
+```json
+{
+  "status": "success",
+  "time": 0.123,
+  "flags": {},
+  "data": {
+    "message": "DNS records checked",
+    "dns_status": {
+      "spf": {
+        "status": "OK",
+        "error": null
+      },
+      "dkim": {
+        "status": "OK",
+        "error": null
+      },
+      "mx": {
+        "status": "OK",
+        "error": null
+      },
+      "return_path": {
+        "status": "OK",
+        "error": null
+      }
+    },
+    "domain": {
+      "id": 1,
+      "uuid": "abc-123",
+      "name": "example.com",
+      "verified": true,
+      "spf_status": "OK",
+      "dkim_status": "OK",
+      "mx_status": "OK",
+      "return_path_status": "OK",
+      ...
+    }
+  }
+}
+```
+
+**DNS Status Values:**
+- `OK` - Record is configured correctly
+- `Missing` - Record not found
+- `Invalid` - Record exists but has incorrect value
+- `null` - Not yet checked
+
+### 6. Delete Domain
 
 **Endpoint:** `POST /api/v1/domains/delete`
 

@@ -11,6 +11,8 @@ Rails.application.routes.draw do
   match "/api/v1/domains/list" => "legacy_api/domains#list", via: [:get, :post, :patch, :put]
   match "/api/v1/domains/info" => "legacy_api/domains#info", via: [:get, :post, :patch, :put]
   match "/api/v1/domains/create" => "legacy_api/domains#create", via: [:get, :post, :patch, :put]
+  match "/api/v1/domains/verify" => "legacy_api/domains#verify", via: [:get, :post, :patch, :put]
+  match "/api/v1/domains/check_dns" => "legacy_api/domains#check_dns", via: [:get, :post, :patch, :put]
   match "/api/v1/domains/delete" => "legacy_api/domains#delete", via: [:get, :post, :patch, :put]
 
   scope "org/:org_permalink", as: "organization" do
