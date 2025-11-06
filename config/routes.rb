@@ -7,6 +7,12 @@ Rails.application.routes.draw do
   match "/api/v1/messages/message" => "legacy_api/messages#message", via: [:get, :post, :patch, :put]
   match "/api/v1/messages/deliveries" => "legacy_api/messages#deliveries", via: [:get, :post, :patch, :put]
 
+  # Domain Management API Routes
+  match "/api/v1/domains/list" => "legacy_api/domains#list", via: [:get, :post, :patch, :put]
+  match "/api/v1/domains/info" => "legacy_api/domains#info", via: [:get, :post, :patch, :put]
+  match "/api/v1/domains/create" => "legacy_api/domains#create", via: [:get, :post, :patch, :put]
+  match "/api/v1/domains/delete" => "legacy_api/domains#delete", via: [:get, :post, :patch, :put]
+
   scope "org/:org_permalink", as: "organization" do
     resources :domains, only: [:index, :new, :create, :destroy] do
       match :verify, on: :member, via: [:get, :post]
